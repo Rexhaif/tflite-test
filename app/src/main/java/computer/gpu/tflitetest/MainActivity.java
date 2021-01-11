@@ -54,6 +54,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public long runModel(Interpreter model, Object[] inputs, HashMap<Integer, Object> outputsMap) {
+        long startTime = System.nanoTime();
+        model.runForMultipleInputsOutputs(inputs, outputsMap);
+        long elapsedTime = System.nanoTime() - startTime;
+        return elapsedTime;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,9 +88,20 @@ public class MainActivity extends AppCompatActivity {
         Object[] inputs = {attention_mask, input_ids};
         HashMap<Integer, Object> outputsMap = new HashMap<>();
         outputsMap.put(0, outputs);
-        long startTime = System.nanoTime();
-        tflite.runForMultipleInputsOutputs(inputs, outputsMap);
-        long elapsedTime = System.nanoTime() - startTime;
-        Log.i(TAG, "Elapsed Time: " + elapsedTime/1_000_000 + " (ms)");
+
+        List<Long> times = new ArrayList<>();
+        for(int i = 0; i < 10; i++) {
+            times.add(runModel(tflite, inputs, outputsMap));
+        }
+        double avg = 0.0, std = 0.0;
+        for (Long time : times){
+            avg += time / ((double) times.size());
+        }
+        for(Long time: times) {
+            std += Math.pow(time - avg, 2);
+        }
+        std = Math.sqrt(std/(times.size()-1.0));
+
+        Log.i(TAG, "Elapsed Time: " + avg/1_000_000 + "+-" + std/1_000_000 + " (ms)");
     }
 }
