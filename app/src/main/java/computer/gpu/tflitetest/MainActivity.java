@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
 
+import javax.crypto.spec.IvParameterSpec;
+
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "==== MAIN ====";
@@ -80,9 +82,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public long runModel(Module model, Tensor input_ids, Tensor attention_mask, boolean verbose) {
+    public long runModel(Module model, IValue input_ids, IValue attention_mask, boolean verbose) {
         long startTime = System.nanoTime();
-        IValue output = model.forward(IValue.from(input_ids), IValue.from(attention_mask));
+        IValue output = model.forward(input_ids, attention_mask);
         if(verbose){
             Log.i(TAG,
                     "Output == " + Arrays
@@ -120,8 +122,12 @@ public class MainActivity extends AppCompatActivity {
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        Tensor input_ids_tensor = Tensor.fromBlob(input_ids, new long[]{1, 128});
-        Tensor attention_mask_tensor = Tensor.fromBlob(attention_mask, new long[]{1, 128});
+        IValue input_ids_tensor = IValue.from(
+                Tensor.fromBlob(input_ids, new long[]{1, 128})
+        );
+        IValue attention_mask_tensor = IValue.from(
+                Tensor.fromBlob(attention_mask, new long[]{1, 128})
+        );
 
         List<Long> times = new ArrayList<>();
         for(int i = 0; i < 500; i++) {
